@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Safety Corpus → Stress Forge Walkthrough</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- iOS home-screen hint -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Safety Walkthrough" />
+  <style>
+    :root {
+      --bg-color: #000000;
+      --panel-color: #111111;
+      --text-main: #ffffff;
+      --text-dim: #888888;
+      --accent: #00ff88;
+      --btn-blue: #8888ff;
+      --btn-orange: #ffaa00;
+      --border: #333333;
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Menlo", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      padding: 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-color);
+    }
+    h1 { margin: 0; font-size: 16px; font-weight: 600; color: var(--accent); }
+    .progress { font-size: 12px; color: var(--text-dim); }
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .phone-mockup {
+      width: 320px;
+      max-width: 100%;
+      height: 500px;
+      background: var(--bg-color);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      flex-shrink: 0;
+    }
+    .mock-status {
+      height: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 6px 10px;
+      border-bottom: 1px solid #222;
+    }
+    .mock-seg-control {
+      margin: 10px;
+      height: 30px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      display: flex;
+      overflow: hidden;
+    }
+    .mock-seg-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--accent);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--accent);
+    }
+    .mock-seg-btn.active { background: var(--accent); color: #000; }
+    .mock-seg-btn:last-child { border-right: none; }
+    .mock-switch-row {
+      display: flex;
+      align-items: center;
+      padding: 0 10px 6px 10px;
+    }
+    .mock-switch {
+      width: 36px;
+      height: 20px;
+      background: #333;
+      border-radius: 10px;
+      position: relative;
+      margin-right: 8px;
+    }
+    .mock-switch.on { background: var(--accent); }
+    .mock-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .mock-switch.on::after { transform: translateX(16px); }
+    .mock-label { font-size: 10px; color: var(--text-dim); }
+    .mock-content {
+      flex: 1;
+      background: #000;
+      margin: 0 10px 10px 10px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      overflow: hidden;
+      border: 1px solid #222;
+      white-space: pre-wrap;
+    }
+    .mock-bottom-bar {
+      height: 50px;
+      display: flex;
+      gap: 8px;
+      padding: 0 10px 10px 10px;
+    }
+    .mock-btn {
+      flex: 1;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      color: #000;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .mock-btn-green { background: var(--accent); }
+    .mock-btn-blue { background: var(--btn-blue); }
+    .mock-btn-orange { background: var(--btn-orange); }
+    .checklist {
+      width: 100%;
+      max-width: 400px;
+      background: var(--panel-color);
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid var(--border);
+    }
+    .step-instruction {
+      font-size: 14px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      color: #eee;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      margin-right: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+    .check-box::after {
+      content: '✓';
+      color: #000;
+      font-weight: bold;
+      font-size: 14px;
+      display: none;
+    }
+    .check-item.checked .check-box { background: var(--accent); }
+    .check-item.checked .check-box::after { display: block; }
+    .check-text { font-size: 13px; color: #ccc; }
+    .check-item.checked .check-text { color: var(--text-dim); text-decoration: line-through; }
+    .nav-bar {
+      padding: 12px 15px 18px;
+      background: var(--panel-color);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .nav-back { background: #333; color: #fff; }
+    .nav-next { background: var(--accent); color: #000; }
+    .nav-next:disabled { opacity: 0.4; cursor: not-allowed; }
+    @media (max-width: 400px) {
+      .phone-mockup { height: 440px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Step <span id="step-num">1</span>: <span id="step-title">Get JSON</span></h1>
+  <div class="progress" id="step-progress">1/6</div>
+</header>
+
+<main>
+  <div class="phone-mockup" id="mockup-container"></div>
+  <div class="checklist" id="checklist-container"></div>
+</main>
+
+<div class="nav-bar">
+  <button class="nav-btn nav-back" id="btn-back">Back</button>
+  <button class="nav-btn nav-next" id="btn-next" disabled>Next</button>
+</div>
+
+<script>
+  // Steps tuned to your exact workflow
+  const steps = [
+    {
+      title: "Get JSON",
+      mockup: {
+        status: "Perplexity – JSON",
+        tabs: null,
+        content: "{\\n  \"schema_version\": 1,\\n  \"generated_at\": \"...\",\\n  \"examples\": [ ... ]\\n}",
+        switch: null,
+        buttons: null
+      },
+      checks: [
+        "In Perplexity, scroll to the big JSON block.",
+        "Long‑press inside the code block.",
+        "Tap 'Select All'.",
+        "Tap 'Copy'.",
+        "Mentally confirm: clipboard has the whole JSON from { to }."
+      ]
+    },
+    {
+      title: "Corpus: Ingest tab",
+      mockup: {
+        status: "Corpus: N examples · File: safety_corpus.json",
+        tabs: { labels: ["Start", "Ingest JSON", "Export / Import", "Browse"], active: 1 },
+        content: "// Paste raw LLM JSON output here,\\n// then tap 'Ingest JSON'.",
+        switch: { label: "Validate only (no write)", on: false },
+        buttons: [
+          { label: "Ingest JSON", color: "green" },
+          { label: "Paste from Clipboard", color: "blue" }
+        ]
+      },
+      checks: [
+        "Run safety_corpus_forge_v3.py in Pythonista.",
+        "Tap the tab 'Ingest JSON' (2nd tab).",
+        "Check the left button label: Ingest JSON."
+      ]
+    },
+    {
+      title: "Paste JSON",
+      mockup: {
+        status: "Corpus: N examples · File: safety_corpus.json",
+        tabs: { labels: ["Start", "Ingest JSON", "Export / Import", "Browse"], active: 1 },
+        content: "{\\n  \"schema_version\": 1,\\n  \"generated_at\": \"2025-12-10T23:26:00Z\",\\n  \"examples\": [ ...41 items... ]\\n}",
+        switch: { label: "Validate only (no write)", on: false },
+        buttons: [
+          { label: "Ingest JSON", color: "green" },
+          { label: "Paste from Clipboard", color: "blue" }
+        ]
+      },
+      checks: [
+        "Tap right button: 'Paste from Clipboard'.",
+        "Confirm the big black box fills with JSON.",
+        "Scroll to top: first character is {.",
+        "Scroll to bottom: last character is }."
+      ]
+    },
+    {
+      title: "Validate only",
+      mockup: {
+        status: "Corpus: N examples · File: safety_corpus.json",
+        tabs: { labels: ["Start", "Ingest JSON", "Export / Import", "Browse"], active: 1 },
+        content: "{ ... JSON visible ... }",
+        switch: { label: "Validate only (no write)", on: true },
+        buttons: [
+          { label: "Ingest JSON", color: "green" },
+          { label: "Paste from Clipboard", color: "blue" }
+        ]
+      },
+      checks: [
+        "Flip the switch 'Validate only (no write)' ON (green).",
+        "Tap left button: 'Ingest JSON'.",
+        "Look for green success HUD (no red error)."
+      ]
+    },
+    {
+      title: "Commit to corpus",
+      mockup: {
+        status: "Corpus: 58 examples · File: safety_corpus.json",
+        tabs: { labels: ["Start", "Ingest JSON", "Export / Import", "Browse"], active: 1 },
+        content: "// Ingest succeeded.\\n// Ingested 41 examples.",
+        switch: { label: "Validate only (no write)", on: false },
+        buttons: [
+          { label: "Ingest JSON", color: "green" },
+          { label: "Paste from Clipboard", color: "blue" }
+        ]
+      },
+      checks: [
+        "Flip the switch OFF (gray).",
+        "Tap 'Ingest JSON' again.",
+        "Read the HUD: 'Ingested 41 examples'.",
+        "Check the status line: Corpus count increased (e.g. 58)."
+      ]
+    },
+    {
+      title: "Export + Stress Forge",
+      mockup: {
+        status: "Corpus: 58 examples · File: safety_corpus.json",
+        tabs: { labels: ["Start", "Ingest JSON", "Export / Import", "Browse"], active: 2 },
+        content: "{\\n  \"source\": \"corpus_export\",\\n  \"count\": 41,\\n  \"entries\": [ ... ]\\n}",
+        switch: null,
+        buttons: [
+          { label: "Export Corpus", color: "green" },
+          { label: "Export Stress Entries", color: "blue" }
+        ]
+      },
+      checks: [
+        "Tap tab 'Export / Import' (3rd tab).",
+        "Tap 'Export Stress Entries' once.",
+        "Know: auto_stress_from_corpus.json is written.",
+        "Run llm_stress_forge_v3.py.",
+        "Confirm status: 'Total: 58 (base 17, corpus 41)'."
+      ]
+    }
+  ];
+
+  let currentStep = 0;
+
+  const mockContainer = document.getElementById('mockup-container');
+  const checklistContainer = document.getElementById('checklist-container');
+  const stepNumEl = document.getElementById('step-num');
+  const stepTitleEl = document.getElementById('step-title');
+  const stepProgressEl = document.getElementById('step-progress');
+  const backBtn = document.getElementById('btn-back');
+  const nextBtn = document.getElementById('btn-next');
+
+  function renderStep() {
+    const step = steps[currentStep];
+    stepNumEl.textContent = currentStep + 1;
+    stepTitleEl.textContent = step.title;
+    stepProgressEl.textContent = `${currentStep + 1}/${steps.length}`;
+
+    // Build mockup
+    let html = `<div class="mock-status">${step.mockup.status}</div>`;
+    if (step.mockup.tabs) {
+      let tabsHTML = '';
+      step.mockup.tabs.labels.forEach((label, idx) => {
+        const active = idx === step.mockup.tabs.active ? 'active' : '';
+        tabsHTML += `<div class="mock-seg-btn ${active}">${label}</div>`;
+      });
+      html += `<div class="mock-seg-control">${tabsHTML}</div>`;
+    }
+    if (step.mockup.switch) {
+      const on = step.mockup.switch.on ? 'on' : '';
+      html += `
+        <div class="mock-switch-row">
+          <div class="mock-switch ${on}"></div>
+          <div class="mock-label">${step.mockup.switch.label}</div>
+        </div>`;
+    }
+    html += `<div class="mock-content">${step.mockup.content}</div>`;
+    if (step.mockup.buttons) {
+      let btns = '';
+      step.mockup.buttons.forEach(b => {
+        const cls = b.color === 'green' ? 'mock-btn-green' :
+                    b.color === 'orange' ? 'mock-btn-orange' : 'mock-btn-blue';
+        btns += `<div class="mock-btn ${cls}">${b.label}</div>`;
+      });
+      html += `<div class="mock-bottom-bar">${btns}</div>`;
+    }
+    mockContainer.innerHTML = html;
+
+    // Checklist
+    checklistContainer.innerHTML = `<div class="step-instruction">Actions required:</div>`;
+    step.checks.forEach((txt, idx) => {
+      checklistContainer.innerHTML += `
+        <div class="check-item" data-idx="${idx}">
+          <div class="check-box"></div>
+          <div class="check-text">${txt}</div>
+        </div>`;
+    });
+
+    checklistContainer.querySelectorAll('.check-item').forEach(item => {
+      item.addEventListener('click', () => {
+        item.classList.toggle('checked');
+        updateNavState();
+      });
+    });
+
+    backBtn.disabled = currentStep === 0;
+    updateNavState();
+  }
+
+  function updateNavState() {
+    const items = checklistContainer.querySelectorAll('.check-item');
+    const checked = checklistContainer.querySelectorAll('.check-item.checked');
+    const allChecked = items.length > 0 && checked.length === items.length;
+    nextBtn.disabled = !allChecked;
+    nextBtn.textContent = currentStep === steps.length - 1 ? 'Finish' : 'Next';
+  }
+
+  backBtn.addEventListener('click', () => {
+    if (currentStep > 0) {
+      currentStep--;
+      renderStep();
+    }
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (currentStep < steps.length - 1) {
+      currentStep++;
+      renderStep();
+    } else {
+      alert("Walkthrough complete – you’re wired and ready.");
+    }
+  });
+
+  // PWA service worker registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
+  renderStep();
+</script>
+</body>
+</html>
